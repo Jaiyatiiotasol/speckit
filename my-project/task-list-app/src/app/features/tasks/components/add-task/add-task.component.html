@@ -1,0 +1,30 @@
+<form [formGroup]="taskForm" (ngSubmit)="onSubmit()" class="add-task-form" id="add-task-form">
+  <div class="input-group">
+    <input
+      type="text"
+      formControlName="title"
+      placeholder="What needs to be done?"
+      class="task-input"
+      id="task-title-input"
+      aria-label="New task title"
+      maxlength="200"
+    />
+    <button type="submit" class="submit-btn" id="add-task-submit" aria-label="Add task">
+      <span class="btn-icon">+</span>
+    </button>
+  </div>
+
+  @if (taskForm.get('title')?.touched && taskForm.get('title')?.invalid) {
+    <div class="error-messages" id="add-task-errors" role="alert">
+      @if (taskForm.get('title')?.hasError('required')) {
+        <p class="error-text">Title is required</p>
+      }
+      @if (taskForm.get('title')?.hasError('whitespace')) {
+        <p class="error-text">Title cannot be blank</p>
+      }
+      @if (taskForm.get('title')?.hasError('maxlength')) {
+        <p class="error-text">Title must be 200 characters or fewer</p>
+      }
+    </div>
+  }
+</form>

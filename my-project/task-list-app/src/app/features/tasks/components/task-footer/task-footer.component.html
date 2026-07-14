@@ -1,0 +1,38 @@
+<div class="task-footer-container" id="task-footer-container">
+  <span class="remaining-count" id="task-remaining-count">
+    {{ remainingCount() }} {{ remainingCount() === 1 ? 'task' : 'tasks' }} left
+  </span>
+
+  <div class="filter-buttons" id="task-filter-buttons">
+    <button
+      type="button"
+      (click)="onFilterChange('all')"
+      [class.active]="filter() === 'all'"
+      id="filter-btn-all"
+      aria-label="Show all tasks"
+      class="filter-btn"
+    >
+      All
+    </button>
+    <button
+      type="button"
+      (click)="onFilterChange('active')"
+      [class.active]="filter() === 'active'"
+      id="filter-btn-active"
+      aria-label="Show active tasks"
+      class="filter-btn"
+    >
+      Active
+    </button>
+    <button
+      type="button"
+      (click)="onFilterChange('completed')"
+      [class.active]="filter() === 'completed'"
+      id="filter-btn-completed"
+      aria-label="Show completed tasks"
+      class="filter-btn"
+    >
+      Completed
+    </button>
+  </div>
+</div>

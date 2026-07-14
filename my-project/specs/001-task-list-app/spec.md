@@ -8,6 +8,14 @@
 
 **Input**: User description: "Build a task list app. Users can add a task with a title, mark it complete, edit the title, and delete it. Tasks persist in the browser (no backend). Show a count of remaining incomplete tasks. Allow filtering by All / Active / Completed."
 
+## Clarifications
+
+### Session 2026-07-13
+
+- Q: In what order should tasks appear in the list? → A: Newest first — most recently added task appears at the top of the list.
+- Q: How does a user activate edit mode and confirm a task title edit? → A: Click an explicit pencil icon/button to activate; press Enter or click away (blur) to confirm.
+- Q: Which browser storage mechanism should be used for task persistence? → A: localStorage — persists indefinitely across tab sessions and browser restarts.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Add and View Tasks (Priority: P1)
@@ -21,7 +29,7 @@ A user opens the app and can immediately start adding tasks. They type a title i
 **Acceptance Scenarios**:
 
 1. **Given** the app is open with an empty list, **When** the user types a title and submits, **Then** the task appears in the list and the remaining-count reads "1 task left".
-2. **Given** one task already exists, **When** the user adds a second task, **Then** both tasks appear and the remaining-count reads "2 tasks left".
+2. **Given** one task already exists, **When** the user adds a second task, **Then** the new task appears at the top of the list and the remaining-count reads "2 tasks left".
 3. **Given** the user submits an empty or whitespace-only title, **When** the form is submitted, **Then** no task is created and the input shows a validation error.
 
 ---
@@ -44,17 +52,18 @@ A user can mark any task as complete by clicking a toggle control next to it. Co
 
 ### User Story 3 - Edit Task Title (Priority: P2)
 
-A user can edit the title of an existing task (complete or incomplete) inline. They activate edit mode (e.g., double-clicking the title), change the text, and confirm the edit. The updated title is saved immediately.
+A user can edit the title of any task by clicking the pencil icon that appears on the task row. This opens an inline text field pre-filled with the current title. The user modifies the text and saves by pressing Enter or by clicking anywhere outside the input (blur). They can abandon the edit at any time by pressing Escape, which restores the original title.
 
 **Why this priority**: Editing corrects mistakes without requiring delete-and-recreate, which improves usability significantly.
 
-**Independent Test**: Can be fully tested by adding a task, activating edit mode, typing a new title, confirming, and verifying the new title is shown.
+**Independent Test**: Can be fully tested by adding a task, clicking its pencil icon, typing a new title, pressing Enter, and verifying the new title is shown.
 
 **Acceptance Scenarios**:
 
-1. **Given** a task exists, **When** the user activates edit mode and changes the title, **Then** the updated title is displayed after confirmation.
-2. **Given** the user is in edit mode, **When** they clear the title and confirm with empty/whitespace content, **Then** the task is deleted (consistent with todo MVC convention).
-3. **Given** the user is in edit mode, **When** they press Escape, **Then** the original title is restored and edit mode closes without saving changes.
+1. **Given** a task exists, **When** the user clicks the pencil icon and changes the title then presses Enter, **Then** the updated title is displayed and the inline field closes.
+2. **Given** a task exists, **When** the user clicks the pencil icon, changes the title, and clicks outside the input, **Then** the updated title is saved and the inline field closes.
+3. **Given** the user is in edit mode, **When** they clear the title and press Enter (or click away), **Then** the task is deleted.
+4. **Given** the user is in edit mode, **When** they press Escape, **Then** the original title is restored and edit mode closes without saving changes.
 
 ---
 
@@ -123,22 +132,23 @@ Tasks created, edited, completed, and deleted are preserved when the user closes
 - **FR-002**: The system MUST reject empty or whitespace-only task titles and display a validation message.
 - **FR-003**: Task titles MUST be limited to a maximum of 200 characters.
 - **FR-004**: Users MUST be able to mark any task as complete or incomplete using a toggle control.
-- **FR-005**: Users MUST be able to edit the title of any existing task inline.
-- **FR-006**: The system MUST delete a task if the user empties its title during editing and confirms the change.
-- **FR-007**: Users MUST be able to cancel an in-progress edit (via Escape key) and revert to the original title.
+- **FR-005**: Each task MUST expose a pencil icon/button that, when clicked, opens an inline text field pre-filled with the current title for editing.
+- **FR-006**: The system MUST save the edited title when the user presses Enter or moves focus away from the inline edit field (blur); if the resulting title is empty or whitespace-only, the task MUST be deleted instead.
+- **FR-007**: Users MUST be able to cancel an in-progress edit (via Escape key) to revert to the original title and close the edit field without saving.
 - **FR-008**: Users MUST be able to delete any task permanently via an explicit delete control.
 - **FR-009**: The app MUST display a count of remaining incomplete tasks at all times.
 - **FR-010**: The count display MUST use correct singular/plural form ("1 task left" vs "2 tasks left").
 - **FR-011**: Users MUST be able to filter the task list by three views: All, Active (incomplete), and Completed.
 - **FR-012**: The active filter MUST be visually indicated so users can tell which view is selected.
 - **FR-013**: The remaining-task count MUST always reflect all incomplete tasks, regardless of the active filter.
-- **FR-014**: All task data (titles, completion states) MUST persist in the browser so they survive page refresh without a backend.
+- **FR-014**: All task data (titles, completion states) MUST be persisted to the browser's localStorage so they survive page refresh, tab close, and browser restart without a backend.
 - **FR-015**: Completed tasks MUST be visually distinct from incomplete tasks (e.g., strikethrough, muted color).
 - **FR-016**: The app MUST display an empty-state message when no tasks match the current filter view.
+- **FR-017**: The task list MUST display tasks in newest-first order — the most recently added task appears at the top.
 
 ### Key Entities
 
-- **Task**: A unit of work with a unique identifier, a title (text, max 200 chars), a completion state (boolean), and a creation timestamp.
+- **Task**: A unit of work with a unique identifier, a title (text, max 200 chars), a completion state (boolean), and a creation timestamp. Tasks are displayed newest-first (sorted descending by creation timestamp).
 - **Filter**: A view mode with three possible values — All, Active, Completed — that controls which tasks are displayed.
 - **Task Count**: A derived value representing the number of tasks whose completion state is incomplete, computed from the full task list regardless of the active filter.
 
@@ -148,7 +158,7 @@ Tasks created, edited, completed, and deleted are preserved when the user closes
 
 - **SC-001**: A user can add a new task in under 5 seconds from opening the app for the first time.
 - **SC-002**: The remaining-task count is accurate 100% of the time — it never shows an incorrect value after any add, complete, uncheck, or delete action.
-- **SC-003**: All tasks and their completion states are present immediately after a hard page refresh, with no data loss under normal browser conditions.
+- **SC-003**: All tasks and their completion states are present immediately after a hard page refresh or reopening a previously closed tab, with no data loss under normal browser conditions.
 - **SC-004**: Switching between All / Active / Completed filters takes effect instantly with no noticeable delay.
 - **SC-005**: 100% of user interactions (add, complete, edit, delete, filter) produce a visible result without a full page reload.
 - **SC-006**: The app remains fully functional with 100+ tasks in the list without perceivable performance degradation.
@@ -157,7 +167,7 @@ Tasks created, edited, completed, and deleted are preserved when the user closes
 
 - **Single-user, single-browser**: The app is designed for one user per browser. No multi-device sync or conflict resolution is required.
 - **No authentication**: No login or account system is needed; task data belongs to the anonymous browser session.
-- **Local persistence mechanism**: The browser's built-in storage (available in all modern browsers) is used. The specific mechanism is an implementation detail.
+- **localStorage persistence**: Task data is stored in the browser's localStorage, which persists indefinitely across page refreshes, tab closes, and browser restarts until the user explicitly clears browser data.
 - **Clearing an edit title deletes the task**: If a user empties a task title while editing and confirms, the task is deleted (consistent with widely-known todo MVC convention).
 - **No bulk actions in v1**: Operations like "mark all complete" or "clear all completed" are out of scope for the initial version.
 - **No due dates or priorities in v1**: Tasks have only a title and completion state. Tags, categories, and priorities are out of scope.

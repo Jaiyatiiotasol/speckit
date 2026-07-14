@@ -31,6 +31,7 @@
 
 ## Notes
 
-- All 16 checklist items pass. No spec updates required.
-- Zero [NEEDS CLARIFICATION] markers — all ambiguities resolved via reasonable defaults documented in the Assumptions section.
+- All 16 checklist items continue to pass after 3 clarification integrations.
+- Clarification session 2026-07-13 resolved 3 items: task display order (newest-first), edit gesture (pencil icon + Enter/blur), and persistence storage (localStorage).
+- FR-014 now explicitly names localStorage; SC-003 covers tab close/reopen; FR-017 codifies newest-first ordering; FR-005/006/007 fully specify the edit interaction.
 - Spec is ready to proceed to `/speckit.plan`.
